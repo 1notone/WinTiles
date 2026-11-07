@@ -60,8 +60,11 @@ jobs:
             $section = if ($end) { $rest[0..($end - 2)] } else { $rest }
             $section | Set-Content $notes
           } else { "WinTiles $v" | Set-Content $notes }
-          $draft = if ('${{ github.event_name }}' -eq 'workflow_dispatch') { '--draft' } else { '' }
-          gh release create "v$v" (Get-ChildItem artifacts/release/*).FullName --title "WinTiles $v" --notes-file $notes $draft
+          # Build the arguments as a list: an empty '' argument would reach gh as a file name.
+          $ghArgs = @("v$v") + (Get-ChildItem artifacts/release/*).FullName + @('--title', "WinTiles $v", '--notes-file', $notes)
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') { $ghArgs += '--draft' }
+          gh release create @ghArgs
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
       - name: Remove certificate
         if: always()
