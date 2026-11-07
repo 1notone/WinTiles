@@ -33,7 +33,7 @@ jobs:
       - name: Build installers (x64 + arm64)
         shell: pwsh
         run: .\build.ps1 -Version 0.0.0-ci
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: WinTiles-unsigned
           path: artifacts/release/
