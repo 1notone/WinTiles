@@ -123,8 +123,8 @@ public sealed class IntegrationEditor : Window
         secretLabel.Text = kind.SecretLabel() is { } label ? (kind.SecretRequired() ? label : label + " (optional)") : "";
         selfSigned.Visibility = kind == ServiceKind.Docker && address.Text.Trim().Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         help.Text = kind.Help() + (kind.UsernameLabel() is not null ? $"\n{kind.UsernameLabel()}: {kind.UsernamePrompt()}" : "");
-        var label = (kind.SecretLabel() ?? "key").ToLowerInvariant();
-        insecure.Text = $"⚠ This address uses plain HTTP and isn't on your local network, so the {label} would be sent unencrypted. Use https:// if the service supports it.";
+        var keyName = (kind.SecretLabel() ?? "key").ToLowerInvariant();
+        insecure.Text = $"⚠ This address uses plain HTTP and isn't on your local network, so the {keyName} would be sent unencrypted. Use https:// if the service supports it.";
         insecure.Visibility = kind.SecretLabel() is not null && Draft().SendsSecretInsecurely ? Visibility.Visible : Visibility.Collapsed;
     }
 

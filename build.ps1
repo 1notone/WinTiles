@@ -23,7 +23,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
-function Step($text) { Write-Host "`n→ $text" -ForegroundColor Cyan }
+function Step($text) { Write-Host "`n> $text" -ForegroundColor Cyan }
 
 if (-not $Version) {
     $Version = ([xml](Get-Content Directory.Build.props)).Project.PropertyGroup.Version | Select-Object -First 1
@@ -97,5 +97,5 @@ Get-ChildItem $release -File | Where-Object Name -ne 'SHA256SUMS.txt' | ForEach-
 Step "Done"
 Get-ChildItem $release | Format-Table Name, @{ n = 'Size'; e = { '{0:N1} MB' -f ($_.Length / 1MB) } } -AutoSize
 if (-not $CertPath) {
-    Write-Host "Unsigned build: Windows SmartScreen will warn on other PCs ('More info' → 'Run anyway'). See RELEASING.md." -ForegroundColor Yellow
+    Write-Host "Unsigned build: Windows SmartScreen will warn on other PCs ('More info' > 'Run anyway'). See RELEASING.md." -ForegroundColor Yellow
 }

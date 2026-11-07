@@ -177,7 +177,7 @@ public sealed class TileElement : Grid
             case TileKind.Weather:
                 return "Weather\n" + WeatherApi.Attribution;
             case TileKind.Web when WebLink.Of(t) is { } url:
-                return WebTileContent.Name(t, launcher) + "\n" + url.OriginalString;
+                return WebTileContent.DisplayName(t, launcher) + "\n" + url.OriginalString;
             case TileKind.Service:
                 if (launcher.Services.IntegrationFor(t) is not { } integration) return "This service was removed";
                 var lines = new List<string> { integration.DisplayName + " · " + (t.Widget?.Title() ?? "") };

@@ -68,8 +68,8 @@ public class LayoutCompatibilityTests
         var proxmox = Assert.Single(file.Settings.Integrations);
         Assert.True(proxmox.AllowSelfSigned, "Proxmox defaults to allowing its self-signed certificate");
         Assert.Equal(new[] { TileKind.Web, TileKind.Service, TileKind.Clock }, file.Groups[0].Tiles.Select(t => t.Kind));
-        Assert.False(TileKindInfo.LiveKinds.Contains(TileKind.Web));
-        Assert.False(TileKindInfo.LiveKinds.Contains(TileKind.Service));
+        Assert.DoesNotContain(TileKind.Web, TileKindInfo.LiveKinds);
+        Assert.DoesNotContain(TileKind.Service, TileKindInfo.LiveKinds);
     }
 
     [Fact]

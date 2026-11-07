@@ -234,7 +234,7 @@ public sealed class WebTileContent : TileContent
         if (url is not null) l.WebIcons.Load(url);
     }
 
-    public static string Name(Tile t, Launcher l)
+    public static string DisplayName(Tile t, Launcher l)
     {
         if (!string.IsNullOrWhiteSpace(t.Title)) return t.Title!;
         if (WebLink.Of(t) is not { } url) return "Web Link";
@@ -243,7 +243,7 @@ public sealed class WebTileContent : TileContent
 
     private void Update()
     {
-        var name = Name(Tile, L);
+        var name = DisplayName(Tile, L);
         labelHost.Children.Clear();
         if (!IsSmall) labelHost.Children.Add(Label(name));
         if (host is not null && url is not null) host.Visibility = name == WebLink.DisplayHost(url) ? Visibility.Collapsed : Visibility.Visible;
