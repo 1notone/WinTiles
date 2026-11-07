@@ -1,0 +1,69 @@
+name: Release
+
+# Push a tag like v1.0.0 to build and publish a GitHub release with installers for x64 and arm64.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (e.g. 1.0.0). Creates a draft release."
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      VERSION: ${{ github.event.inputs.version || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Install Inno Setup if missing
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+
+      - name: Code-signing certificate (optional)
+        shell: pwsh
+        env:
+          CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
+        run: |
+          if (-not $env:CERT_PFX) { Write-Host "::warning::No WINDOWS_CERT_PFX secret; building an unsigned release."; exit 0 }
+          $path = Join-Path $env:RUNNER_TEMP 'cert.pfx'
+          [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($env:CERT_PFX))
+          "WINTILES_CERT_PATH=$path" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Build, test, sign
+        shell: pwsh
+        env:
+          WINTILES_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: .\build.ps1 -Version $env:VERSION
+
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = $env:VERSION.TrimStart('v')
+          $notes = Join-Path $env:RUNNER_TEMP 'notes.md'
+          # This version's CHANGELOG section becomes the release notes.
+          $lines = Get-Content CHANGELOG.md
+          $start = ($lines | Select-String -Pattern "^## \[?$([regex]::Escape($v))\]?" | Select-Object -First 1).LineNumber
+          if ($start) {
+            $rest = $lines[$start..($lines.Count - 1)]
+            $end = ($rest | Select-String -Pattern '^## ' | Select-Object -First 1).LineNumber
+            $section = if ($end) { $rest[0..($end - 2)] } else { $rest }
+            $section | Set-Content $notes
+          } else { "WinTiles $v" | Set-Content $notes }
+          $draft = if ('${{ github.event_name }}' -eq 'workflow_dispatch') { '--draft' } else { '' }
+          gh release create "v$v" (Get-ChildItem artifacts/release/*).FullName --title "WinTiles $v" --notes-file $notes $draft
+
+      - name: Remove certificate
+        if: always()
+        shell: pwsh
+        run: if ($env:WINTILES_CERT_PATH) { Remove-Item $env:WINTILES_CERT_PATH -ErrorAction SilentlyContinue }

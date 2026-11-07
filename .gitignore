@@ -1,0 +1,19 @@
+bin/
+obj/
+artifacts/
+.vs/
+*.user
+*.pfx
+TestResults/
+
+# Never commit signing secrets
+*.p12
+*.cer
+*.key
+.env
+.env.*
+
+# Editors
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # The core logic is platform-neutral, so its tests also run on Linux (fast feedback).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Check for personal data and secrets
+        shell: pwsh
+        run: ./Scripts/privacy-check.ps1
+      - run: dotnet test tests/WinTiles.Core.Tests/WinTiles.Core.Tests.csproj -c Release
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Install Inno Setup if missing
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+      - name: Build installers (x64 + arm64)
+        shell: pwsh
+        run: .\build.ps1 -Version 0.0.0-ci
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WinTiles-unsigned
+          path: artifacts/release/
